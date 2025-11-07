@@ -1,0 +1,599 @@
+{
+  "name": "GoNoGo Advance",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "097097be-a69c-493e-af64-164cd9d6cd30",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1632,
+        560
+      ],
+      "id": "82525bde-f4ea-45bc-8bcc-e1dd847286f3",
+      "name": "Input Field",
+      "webhookId": "097097be-a69c-493e-af64-164cd9d6cd30"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze the following idea in detail. Provide feasibility, advantages, disadvantages, and potential improvements. Always use the Wikipedia tool to gather context before answering. Fetch the latest related articles using the HTTP Request tool before analyzing.\n\nIdea: {{ $json.idea }}\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -592,
+        400
+      ],
+      "id": "87d8773f-4b11-49db-9a8e-b7c3eab44f71",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -656,
+        800
+      ],
+      "id": "2128ac88-24af-4a04-93ad-56c51ae79470",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "TWJZjHy3cTKZXTcF",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Taking data from news api and sending it back",
+        "url": "=https://newsapi.org/v2/everything?q={{encodeURIComponent($json[\"idea\"])}}&sortBy=popularity&apiKey=your api key\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        -512,
+        800
+      ],
+      "id": "c77d7924-dc1f-4247-8f93-6e883ea76445",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolWikipedia",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        800
+      ],
+      "id": "64fa7bb9-a9c3-4ab5-b7ab-029024c8bccb",
+      "name": "Wikipedia"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.0-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.0-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are GoNoGo, an AI project idea analyzer. Do NOT act like a chatbot. Do NOT explain step by step. Take the following raw analysis data (which may be verbose or unstructured) and produce ONLY a short, structured evaluation with these exact fields: Idea: <extract and repeat the idea from the data> Rating: <score 1–10> Scalability: <percentage> Pros: 2–3 short pros Cons: 2–3 short cons Requirements: 2–3 key things needed to make this idea work Regions: regions or markets where this idea is most likely to succeed Verdict: Go or No-Go. Analyze the given project idea strictly in the following format — do not add explanations, markdown, or code blocks. Example format: Idea: idea analyzer Rating: 3 Scalability: 20% Pros: Potential market need; Scalable technology Cons: Undefined functionality; Unclear value proposition Requirements: Defined functionality; Clear target audience Regions: N/A Verdict: No-Go Now analyze this idea: {{ $json[\"idea\"] }} Remember: Keep responses short and in one line per field. Use semicolons (;) to separate multiple items. Do NOT use\njson or any code block formatting.\n\nDo NOT explain your reasoning.\nMake the output concise, JSON-like but still human-readable. --- Raw Data from AI Agent: {{$json.detail}}\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        48,
+        528
+      ],
+      "id": "fc7b1378-171a-41d9-8866-6b83b73b95f2",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wyPJ3J1nirmVr2Hf",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type"
+              },
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "GET, POST, OPTIONS"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1344,
+        848
+      ],
+      "id": "30e06e1f-5c50-4108-adf8-c6d18ca713a2",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3e2e75a4-ceef-424f-9358-131e60d6b0f1",
+              "name": "reply",
+              "value": "={{ $json[\"content\"][\"parts\"].map(p => p.text).join(\" \").split(\"===PDF START===\")[0] }}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        496,
+        528
+      ],
+      "id": "e7195a21-0a9f-459e-b66f-6a8268861dd7",
+      "name": "Filter Output"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1152,
+        1248
+      ],
+      "id": "ddb1a9e6-c3cd-4fef-8a3b-ba1bbe8a0d5d",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wyPJ3J1nirmVr2Hf",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.html2pdf.app/v1/generate",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "apiKey",
+              "value": "value"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "html",
+              "value": "=<html>\n  <head>\n    <style>\n      body {\n        font-family: 'Poppins', 'Helvetica', 'Arial', sans-serif;\n        line-height: 1.6;\n        padding: 40px;\n        color: #222;\n        background: #fff;\n      }\n      h1, h2, h3, h4, h5 {\n        color: #1a73e8;\n        font-weight: 600;\n        margin-bottom: 10px;\n      }\n      h1 {\n        text-align: center;\n        font-size: 32px;\n        border-bottom: 2px solid #1a73e8;\n        padding-bottom: 10px;\n        margin-bottom: 20px;\n      }\n      h2 {\n        font-size: 22px;\n        border-bottom: 1px solid #ccc;\n        margin-top: 25px;\n      }\n      p, li {\n        font-size: 15px;\n        line-height: 1.6;\n      }\n      ul {\n        margin-left: 25px;\n        list-style-type: disc;\n      }\n      strong {\n        color: #000;\n      }\n    </style>\n  </head>\n  <body>\n    <h1>Project Analysis Report</h1>\n    <div>{{ $json[\"output\"] }}</div>\n  </body>\n</html>\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        272,
+        1184
+      ],
+      "id": "319dfc40-b6c4-4851-b13f-771e19cd16ac",
+      "name": "pdf conversion"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5c613d8b-3e4d-4d97-9270-5e4dfea020bf",
+              "name": "=idea",
+              "value": "={{$json[\"body\"][\"idea\"]}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1168,
+        560
+      ],
+      "id": "ee6b72ba-da5f-4a7c-8149-43d0861e928e",
+      "name": "Filter Idea"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5c613d8b-3e4d-4d97-9270-5e4dfea020bf",
+              "name": "=detail",
+              "value": "={{$json[\"output\"]}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -192,
+        528
+      ],
+      "id": "f4794434-7292-4e57-9979-8f9824c44d17",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a Project Analysis AI specialized in evaluating technology projects and business ideas. Your task is to create a professional, well-structured project feasibility report in clear text format — suitable for exporting as a PDF. Avoid using markdown symbols such as #, *, or **. Use proper titles, spacing, and indentation to make it look like a polished document.\n\nMandatory Research Phase:\n1. Wikipedia Research: Use the Wikipedia tool to gather foundational knowledge about the core technology, industry domain, and key concepts related to this project.\n2. Market Research: Use the HTTP Request tool to fetch the latest market data, competitor analysis, and industry trends from reliable sources.\n\n------------------------------\nPROJECT FEASIBILITY REPORT\n------------------------------\n\nProject Title: [Project Name]\n\nExecutive Summary:\n- Project overview and core value proposition\n- Feasibility rating (High / Medium / Low)\n- Critical success factors and major risks\n\n1. Project Overview\n   - Description: Provide a clear explanation of the project.\n   - Problem Statement: Define the main problem being solved.\n   - Target Audience: Identify the intended users or customers.\n   - Unique Value Proposition: Explain what makes this project unique.\n\n2. Market and Industry Analysis\n   - Market Size: Estimate TAM and SAM.\n   - Competitive Landscape: List and describe direct and indirect competitors.\n   - Industry Trends: Highlight key current and emerging trends.\n   - Regulatory Environment: Mention any compliance or legal considerations.\n\n3. Technical Feasibility\n   - Technology Stack: Describe the required technologies and their maturity.\n   - Development Complexity: Estimate the technical effort and challenges.\n   - Scalability Considerations: Discuss infrastructure and growth potential.\n   - Technical Risks: Identify major risks and mitigation strategies.\n\n4. Business Feasibility\n   - Revenue Model: Explain how the project will generate revenue.\n   - Cost Structure: Outline development, operational, and marketing costs.\n   - ROI Projection: Estimate the potential return on investment and timeline.\n   - Resource Requirements: Mention required team, tools, and infrastructure.\n\n5. SWOT Analysis\n   Strengths:\n   Weaknesses:\n   Opportunities:\n   Threats:\n\n6. Risk Assessment\n   High Priority Risks:\n   Medium Priority Risks:\n   Low Priority Risks:\n   Mitigation Strategies:\n\n7. Implementation Roadmap\n   Phase 1 (Months 1–3): MVP development and validation\n   Phase 2 (Months 4–6): Feature expansion and user acquisition\n   Phase 3 (Months 7–12): Scaling and monetization\n   Key Milestones: List major deliverables.\n\n8. Recommendations\n   - Go / No-Go Recommendation\n   - Critical Success Factors\n   - Alternative Approaches if primary plan fails\n\nProject to Analyze:\n\"{{ $json.idea }}\"\n\nGenerate the report in clean, human-readable text suitable for professional PDF output.\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -592,
+        1184
+      ],
+      "id": "c9efef3b-a8c5-40fe-82c6-0fc04dd93fba",
+      "name": "AI Agent 2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Combine LLM text + PDF output\nconst [textItem, pdfItem] = items;\n\n// Extract reply (from frontend agent)\nconst reply = textItem.json.reply || textItem.json.output || null;\n\n// Extract PDF (from pdf generator node)\nlet pdfResult = null;\n\nif (pdfItem.binary) {\n  const key = Object.keys(pdfItem.binary)[0];\n  if (key && pdfItem.binary[key].data) {\n    pdfResult = `data:application/pdf;base64,${pdfItem.binary[key].data}`;\n  }\n}\n\nreturn [\n  {\n    json: {\n      reply,\n      pdf: pdfResult\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1056,
+        848
+      ],
+      "id": "cd27e427-0096-4db8-9296-fd8d99e563b1",
+      "name": "Code"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        832,
+        848
+      ],
+      "id": "e51cdaa9-9b55-4697-ad2a-48be4794725f",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "content": "📄 AI AGENT 2 — PDF GENERATION SECTION \n───────────────────────────────────────\n• Takes the same idea text input.  \n• Converts structured analysis into formatted HTML.  \n• PDF Generator node creates downloadable PDF file.  \n• Output is base64-encoded PDF string.  \n",
+        "height": 480,
+        "width": 1552,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -912,
+        1392
+      ],
+      "id": "f3c2e7b5-d724-4109-9d13-35622b3ae37c",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "📥 INPUT SECTION  \n────────────────────────────  \n• Receives idea text from the frontend (Webhook Input).  \n• Filters incoming data for valid idea fields.  \n• Passes idea text to AI Agent 1 for analysis and to AI Agent 2 for PDF generation.  \n",
+        "height": 928,
+        "width": 672,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1664,
+        16
+      ],
+      "id": "1d91788e-419a-4de8-becf-bc5284bbdec2",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "content": "🧠 AI AGENT 1 — IDEA ANALYSIS FOR FRONTEND DISPLAY SECTION\n─────────────────────────────────────────────────────────\n• Uses Gemini 2.0 flah to analyze the submitted idea.  \n• Generates feasibility report, pros/cons, regions, and verdict.  \n• Filter node ensures valid structured response.  \n• Output prepared for frontend display.  \n",
+        "height": 928,
+        "width": 1408,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -784,
+        16
+      ],
+      "id": "0eeb899a-7a2b-46f6-8297-d901e9eecf6b",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "🔗 MERGE + RESPONSE SECTION  \n────────────────────────────  \n• Merges outputs from AI Agent 1 (text) and AI Agent 2 (PDF).  \n• Function node combines both into one unified JSON object:  \n   { reply: \"text\", pdf: \"data:application/pdf;base64...\" }  \n• Sends combined response to the Webhook for frontend rendering.  \n",
+        "height": 1088,
+        "width": 832,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        752,
+        16
+      ],
+      "id": "c768ab4a-34ca-4549-9a94-6b9a9c1e0a76",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2a1812ab-b9ea-4086-ac39-c5de16b1370a",
+              "name": "output",
+              "value": "=<html>\n  <head>\n    <style>\n      body {\n        font-family: 'Helvetica', 'Arial', sans-serif;\n        line-height: 1.7;\n        padding: 35px;\n        color: #222;\n        background-color: #fff;\n      }\n      h1 {\n        text-align: center;\n        color: #1a73e8;\n        font-size: 30px;\n        margin-bottom: 10px;\n      }\n      h2 {\n        color: #1a73e8;\n        border-bottom: 2px solid #1a73e8;\n        padding-bottom: 5px;\n        margin-top: 60px; /* increased gap (≈2–3 lines) */\n        font-size: 22px;\n        font-weight: bold; /* subheading bold */\n      }\n      p, li {\n        font-size: 15px;\n        margin-bottom: 10px;\n      }\n      pre, div {\n        white-space: pre-line;\n        font-size: 15px;\n      }\n      ul {\n        margin-left: 20px;\n      }\n      .section-title {\n        color: #1a73e8;\n        font-weight: bold;\n        font-size: 18px;\n        margin-top: 25px;\n      }\n      .content {\n        white-space: pre-line;\n      }\n    </style>\n  </head>\n  <body>\n    <div class=\"content\">{{ $json[\"output\"] }}</div>\n  </body>\n</html>\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -96,
+        1184
+      ],
+      "id": "56810a70-528b-4756-8e25-d9c42818a20a",
+      "name": "Edit For Pdf"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Input Field": {
+      "main": [
+        [
+          {
+            "node": "Filter Idea",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wikipedia": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "AI Agent 2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "AI Agent 2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Filter Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Output": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent 2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "pdf conversion": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Filter Idea": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Agent 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent 2": {
+      "main": [
+        [
+          {
+            "node": "Edit For Pdf",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit For Pdf": {
+      "main": [
+        [
+          {
+            "node": "pdf conversion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "69c1a797-1ff0-406f-91c0-fe2cdeee420e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b11a2562fe415bf738dba4824f55dd6e0ad63a533110a6fc7995f7f28f1e7fd4"
+  },
+  "id": "ZRDixufGwB0EzYNb",
+  "tags": []
+}

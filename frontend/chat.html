@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GoNoGo - AI Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        html,
+        body {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        .page-shell {
+            background: transparent !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 flex items-center justify-center min-h-screen px-3">
+    <div class="w-full max-w-3xl page-shell flex flex-col h-[90vh]">
+        <!-- Header -->
+        <div
+            class="p-4 sm:p-5 border-b border-gray-700 text-center font-extrabold text-pink-400 text-xl sm:text-2xl tracking-wide">
+            🚀 GoNoGo – AI Idea Validator
+        </div>
+
+        <!-- Tool Description -->
+        <div class="p-4 sm:p-6 border-b border-gray-700 text-center sm:text-left">
+            <p class="text-gray-300 text-base sm:text-lg">
+                Enter your <span class="font-semibold text-pink-400">project idea</span> below and let the AI
+                analyze its potential instantly.
+            </p>
+        </div>
+
+        <!-- Input Section -->
+        <form id="chat-form" class="p-4 sm:p-6 flex flex-col sm:flex-row gap-3">
+            <input id="user-input" type="text" placeholder="💡 Describe your idea..."
+                class="flex-1 bg-gray-700 text-gray-200 border-none rounded-xl px-4 py-3 focus:outline-none placeholder-gray-400 text-base w-full"
+                required />
+            <button type="submit"
+                class="bg-gradient-to-r from-purple-500 to-pink-600 text-white px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition w-full sm:w-auto">
+                Analyze
+            </button>
+        </form>
+
+        <!-- Result Section -->
+        <div class="flex-1 p-4 sm:p-6 overflow-y-auto">
+            <h2 class="text-pink-400 font-semibold mb-3 text-lg sm:text-xl">AI Analysis:</h2>
+            <div id="chat-box" class="text-gray-200 text-base leading-relaxed">
+                <p class="text-gray-400 italic">Your results will appear here...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
